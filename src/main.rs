@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use regex::{Regex, RegexSetBuilder};
+use std::io::ErrorKind;
 use std::io::{BufRead, BufReader};
 
 fn extract_login(email: &str) -> String {
@@ -84,20 +85,45 @@ fn main() {
      ************************************************************/
     // read application.log file (there is no application log file)
 
-    let file = std::fs::read_to_string("application.log").unwrap();
-    // create a reader
-    let reader = BufReader::new(file.as_bytes());
-    // create a regex set to match the lines with ip address
-    let ip_regex_set = RegexSetBuilder::new(&[
-        r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$",
-        r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$",
-    ]);
-    // read line by line and match the ip address
-    for line in reader.lines() {
-        let line = line.unwrap();
-        // check if the line has ip address
-        if ip_regex_set.build().unwrap().is_match(&line) {
-            println!("{}", line);
+    let file = std::fs::read_to_string("application.log");
+    match (file) {
+        Ok(file) => {
+            let reader = BufReader::new(file.as_bytes());
+            let ip_regex_set = RegexSetBuilder::new(&[
+                r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$",
+                r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$",
+            ]);
+            // read line by line and match the ip address
+            for line in reader.lines() {
+                let line = line.unwrap();
+                // check if the line has ip address
+                if ip_regex_set.build().unwrap().is_match(&line) {
+                    println!("{}", line);
+                }
+            }
+        }
+        Err(error) => {
+            if error.kind() == std::io::ErrorKind::NotFound {
+                println!("File not found, skipping code block");
+            } else {
+                panic!("Failed to open file: {:?}", error);
+            }
         }
     }
+
+    /**************************
+     * REPLACE TEXT WITH REGEX
+     *************************/
+    // finds all the dates in the string and replaces them with ISO 2014
+    fn reformat_dates(dates: &str) -> String {
+        lazy_static! {
+            static ref DATE_REGEX: Regex = Regex::new(r"\d{4}-\d{2}-\d{2}").unwrap();
+        }
+        let new_date = DATE_REGEX.replace_all(dates, "2014-01-01T12:00:00Z");
+
+        new_date.to_string()
+    }
+    let dates_before = "2012-03-14, 2013-01-15 and 2014-07-05";
+    let reformatted_dates = reformat_dates(dates_before);
+    println!("{}", reformatted_dates);
 }
