@@ -1,6 +1,5 @@
 use lazy_static::lazy_static;
 use regex::{Regex, RegexSetBuilder};
-use std::io::ErrorKind;
 use std::io::{BufRead, BufReader};
 
 fn extract_login(email: &str) -> String {
