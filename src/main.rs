@@ -31,6 +31,6 @@ fn main() {
     let login = extract_login("ron_burgundy.121.310_2132-hellyaaa!@hollywoods_ass.com");
     println!("{}", login);
 
-    let hashtag = extract_hashtag("I love #rust and #regex");
+    let hashtag = extract_hashtag("what a #beautiful #day to #code #rust!");
     println!("{:?}", hashtag);
 }
